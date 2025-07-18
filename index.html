@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTech Assignment Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better UX */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .btn {
+            @apply px-4 py-2 rounded-md font-semibold text-white shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2;
+        }
+        .btn-primary {
+            @apply bg-green-600 hover:bg-green-700 focus:ring-green-500;
+        }
+        .btn-secondary {
+            @apply bg-red-500 hover:bg-red-600 focus:ring-red-400;
+        }
+        .btn-teacher {
+            @apply bg-teal-600 hover:bg-teal-700 focus:ring-teal-500;
+        }
+        .btn-student {
+            @apply bg-sky-600 hover:bg-sky-700 focus:ring-sky-500;
+        }
+        .input-field {
+            @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="app" class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-indigo-700">Assignment Tracker</h1>
+            <p class="text-gray-600 mt-2">Welcome to your EdTech Platform</p>
+        </header>
+
+        <!-- Role Selection / Login View -->
+        <div id="login-view">
+            <div class="bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Select Your Role</h2>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="login-teacher" class="btn btn-teacher w-full">I am a Teacher</button>
+                    <button id="login-student" class="btn btn-student w-full">I am a Student</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher View -->
+        <div id="teacher-view" class="hidden">
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Teacher Dashboard</h2>
+                    <button id="teacher-back-btn" class="btn btn-secondary">Back</button>
+                </div>
+                <div id="create-assignment-section">
+                    <h3 class="text-xl font-semibold mb-3">Create New Assignment</h3>
+                    <form id="create-assignment-form">
+                        <div class="mb-4">
+                            <label for="assignment-title" class="block text-sm font-medium text-gray-700">Title</label>
+                            <input type="text" id="assignment-title" class="input-field" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="assignment-desc" class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea id="assignment-desc" rows="4" class="input-field" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Assignment</button>
+                    </form>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-3">Posted Assignments</h3>
+                    <div id="teacher-assignments-list" class="space-y-4">
+                        <!-- Assignments will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student View -->
+        <div id="student-view" class="hidden">
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Student Dashboard</h2>
+                    <button id="student-back-btn" class="btn btn-secondary">Back</button>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Available Assignments</h3>
+                <div id="student-assignments-list" class="space-y-4">
+                    <!-- Assignments will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Submission Modal (for students) -->
+        <div id="submission-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+            <div class="bg-white rounded-lg shadow-xl p-8 w-11/12 md:max-w-2xl modal transform scale-95">
+                <h2 class="text-2xl font-bold mb-4" id="modal-assignment-title"></h2>
+                <p class="text-gray-600 mb-4" id="modal-assignment-desc"></p>
+                <form id="submission-form">
+                    <input type="hidden" id="submission-assignment-id">
+                    <div>
+                        <label for="submission-content" class="block text-sm font-medium text-gray-700">Your Submission</label>
+                        <textarea id="submission-content" rows="8" class="input-field" placeholder="Enter your code or answer here..." required></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-4">
+                        <button type="button" id="cancel-submission" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- View Submissions Modal (for teachers) -->
+        <div id="view-submissions-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+            <div class="bg-white rounded-lg shadow-xl p-8 w-11/12 md:max-w-3xl modal transform scale-95">
+                 <div class="flex justify-between items-start">
+                    <h2 class="text-2xl font-bold mb-4" id="view-submissions-title">Submissions</h2>
+                    <button id="close-view-submissions" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+                <div id="submissions-content-area" class="max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Submissions list will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- MOCK DATABASE & API --- //
+            // In a real application, this data would live in a database (PostgreSQL, etc.)
+            // and be accessed via authenticated API calls to a Python backend (Flask/Django).
+
+            let users = [
+                { id: 1, role: 'teacher', name: 'Dr. Turing' },
+                { id: 2, role: 'student', name: 'Ada Lovelace' }
+            ];
+            let assignments = [];
+            let submissions = [];
+            let nextAssignmentId = 1;
+            let nextSubmissionId = 1;
+
+            let currentUser = null;
+
+            // --- API SIMULATION --- //
+            const api = {
+                login: (role) => {
+                    return new Promise((resolve) => {
+                        currentUser = users.find(u => u.role === role);
+                        console.log(`Logged in as ${currentUser.name} (${currentUser.role})`);
+                        resolve(currentUser);
+                    });
+                },
+                logout: () => {
+                    return new Promise((resolve) => {
+                        if (currentUser) {
+                           console.log(`${currentUser.name} logged out.`);
+                           currentUser = null;
+                        }
+                        resolve();
+                    });
+                },
+                createAssignment: (title, description) => {
+                    return new Promise((resolve, reject) => {
+                        if (currentUser?.role !== 'teacher') {
+                            return reject('Unauthorized');
+                        }
+                        const newAssignment = {
+                            id: nextAssignmentId++,
+                            title,
+                            description,
+                            teacher_id: currentUser.id,
+                            created_at: new Date().toISOString()
+                        };
+                        assignments.push(newAssignment);
+                        console.log('API: Created Assignment', newAssignment);
+                        resolve(newAssignment);
+                    });
+                },
+                getAssignments: () => {
+                    return new Promise((resolve) => {
+                        console.log('API: Fetched Assignments', assignments);
+                        resolve(assignments);
+                    });
+                },
+                submitAssignment: (assignmentId, content) => {
+                     return new Promise((resolve, reject) => {
+                        if (currentUser?.role !== 'student') {
+                            return reject('Unauthorized');
+                        }
+                        const newSubmission = {
+                            id: nextSubmissionId++,
+                            assignmentId: parseInt(assignmentId),
+                            student_id: currentUser.id,
+                            student_name: currentUser.name,
+                            content,
+                            submitted_at: new Date().toISOString()
+                        };
+                        submissions.push(newSubmission);
+                        console.log('API: Created Submission', newSubmission);
+                        resolve(newSubmission);
+                    });
+                },
+                getSubmissionsForAssignment: (assignmentId) => {
+                    return new Promise((resolve, reject) => {
+                        if (currentUser?.role !== 'teacher') {
+                            return reject('Unauthorized');
+                        }
+                        const relevantSubmissions = submissions.filter(s => s.assignmentId === parseInt(assignmentId));
+                        console.log(`API: Fetched Submissions for assignment ${assignmentId}`, relevantSubmissions);
+                        resolve(relevantSubmissions);
+                    });
+                }
+            };
+
+            // --- DOM ELEMENTS --- //
+            const loginView = document.getElementById('login-view');
+            const teacherView = document.getElementById('teacher-view');
+            const studentView = document.getElementById('student-view');
+
+            // --- RENDER FUNCTIONS --- //
+            const renderTeacherDashboard = async () => {
+                const assignmentsList = document.getElementById('teacher-assignments-list');
+                assignmentsList.innerHTML = '<p class="text-gray-500">Loading assignments...</p>';
+                const allAssignments = await api.getAssignments();
+                const teacherAssignments = allAssignments.filter(a => a.teacher_id === currentUser.id);
+                
+                if (teacherAssignments.length === 0) {
+                    assignmentsList.innerHTML = '<p class="text-gray-500">You have not posted any assignments yet.</p>';
+                    return;
+                }
+
+                assignmentsList.innerHTML = teacherAssignments.map(a => `
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-semibold text-lg">${a.title}</h4>
+                                <p class="text-sm text-gray-600">${a.description.substring(0, 100)}...</p>
+                            </div>
+                            <button data-assignment-id="${a.id}" class="view-submissions-btn btn btn-primary">View Submissions</button>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            const renderStudentDashboard = async () => {
+                const assignmentsList = document.getElementById('student-assignments-list');
+                assignmentsList.innerHTML = '<p class="text-gray-500">Loading assignments...</p>';
+                const allAssignments = await api.getAssignments();
+
+                if (allAssignments.length === 0) {
+                    assignmentsList.innerHTML = '<p class="text-gray-500">No assignments are available right now.</p>';
+                    return;
+                }
+                
+                assignmentsList.innerHTML = allAssignments.map(a => `
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                <h4 class="font-semibold text-lg">${a.title}</h4>
+                                <p class="text-sm text-gray-600">${a.description}</p>
+                            </div>
+                            <button data-assignment-id="${a.id}" class="submit-assignment-btn btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            // --- UI CONTROL --- //
+            const showView = (view) => {
+                loginView.classList.add('hidden');
+                teacherView.classList.add('hidden');
+                studentView.classList.add('hidden');
+
+                if (view === 'teacher') teacherView.classList.remove('hidden');
+                if (view === 'student') studentView.classList.remove('hidden');
+                if (view === 'login') {
+                    loginView.classList.remove('hidden');
+                }
+            };
+
+            // --- EVENT LISTENERS --- //
+            document.getElementById('login-teacher').addEventListener('click', async () => {
+                await api.login('teacher');
+                showView('teacher');
+                renderTeacherDashboard();
+            });
+
+            document.getElementById('login-student').addEventListener('click', async () => {
+                await api.login('student');
+                showView('student');
+                renderStudentDashboard();
+            });
+
+            const handleLogout = async () => {
+                await api.logout();
+                showView('login');
+            };
+
+            document.getElementById('teacher-back-btn').addEventListener('click', handleLogout);
+            document.getElementById('student-back-btn').addEventListener('click', handleLogout);
+
+
+            // Teacher: Create Assignment
+            document.getElementById('create-assignment-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('assignment-title').value;
+                const description = document.getElementById('assignment-desc').value;
+                try {
+                    await api.createAssignment(title, description);
+                    e.target.reset();
+                    renderTeacherDashboard();
+                } catch (error) {
+                    console.error(error);
+                    alert('Could not create assignment.');
+                }
+            });
+
+            // Student: Open Submission Modal
+            document.getElementById('student-assignments-list').addEventListener('click', (e) => {
+                if (e.target.classList.contains('submit-assignment-btn')) {
+                    const assignmentId = e.target.dataset.assignmentId;
+                    const assignment = assignments.find(a => a.id == assignmentId);
+                    
+                    document.getElementById('modal-assignment-title').textContent = assignment.title;
+                    document.getElementById('modal-assignment-desc').textContent = assignment.description;
+                    document.getElementById('submission-assignment-id').value = assignment.id;
+                    
+                    const modal = document.getElementById('submission-modal');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.querySelector('.modal').classList.remove('scale-95'), 10);
+                }
+            });
+
+            // Student: Submit Assignment
+            document.getElementById('submission-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const assignmentId = document.getElementById('submission-assignment-id').value;
+                const content = document.getElementById('submission-content').value;
+                try {
+                    await api.submitAssignment(assignmentId, content);
+                    closeSubmissionModal();
+                    alert('Submission successful!');
+                } catch (error) {
+                    console.error(error);
+                    alert('Could not submit assignment.');
+                }
+            });
+
+            const closeSubmissionModal = () => {
+                const modal = document.getElementById('submission-modal');
+                modal.querySelector('.modal').classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.getElementById('submission-form').reset();
+                }, 300);
+            };
+            document.getElementById('cancel-submission').addEventListener('click', closeSubmissionModal);
+
+            // Teacher: View Submissions
+            document.getElementById('teacher-assignments-list').addEventListener('click', async (e) => {
+                if (e.target.classList.contains('view-submissions-btn')) {
+                    const assignmentId = e.target.dataset.assignmentId;
+                    const assignment = assignments.find(a => a.id == assignmentId);
+                    const submissionsForAssignment = await api.getSubmissionsForAssignment(assignmentId);
+
+                    document.getElementById('view-submissions-title').textContent = `Submissions for: ${assignment.title}`;
+                    const contentArea = document.getElementById('submissions-content-area');
+                    
+                    if (submissionsForAssignment.length === 0) {
+                        contentArea.innerHTML = '<p class="text-gray-500">No submissions yet for this assignment.</p>';
+                    } else {
+                        contentArea.innerHTML = submissionsForAssignment.map(s => `
+                            <div class="border-b border-gray-200 py-4">
+                                <p class="font-semibold">${s.student_name}</p>
+                                <p class="text-xs text-gray-500 mb-2">Submitted on: ${new Date(s.submitted_at).toLocaleString()}</p>
+                                <pre class="bg-gray-100 p-3 rounded-md text-sm whitespace-pre-wrap">${s.content}</pre>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    const modal = document.getElementById('view-submissions-modal');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.querySelector('.modal').classList.remove('scale-95'), 10);
+                }
+            });
+
+            const closeViewSubmissionsModal = () => {
+                 const modal = document.getElementById('view-submissions-modal');
+                 modal.querySelector('.modal').classList.add('scale-95');
+                 setTimeout(() => modal.classList.add('hidden'), 300);
+            };
+            document.getElementById('close-view-submissions').addEventListener('click', closeViewSubmissionsModal);
+
+        });
+    </script>
+</body>
+</html>
