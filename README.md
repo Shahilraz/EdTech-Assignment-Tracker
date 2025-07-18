@@ -1,118 +1,100 @@
-# EdTech-Assignment-Tracker
-This project is a solution to the EdTech Assignment Tracker problem. It includes a comprehensive system design and a functional frontend prototype that demonstrates the core features of the application.
+📘 EdTech Assignment Tracker
+A simplified assignment tracking system for an EdTech platform. This project includes a complete system design and a functional frontend prototype demonstrating core features like role-based access, assignment creation, and submission tracking.
 
-1. Objective
-To design and implement a simplified assignment tracking system for an EdTech platform that allows teachers to post assignments and students to submit them, with clear role-based access control.
+🧩 1. Objective
+To design and implement a minimal assignment tracking system where:
 
-2. System Design
-2.1. System Architecture
-The system is designed using a Client-Server Architecture.
+Teachers can post assignments.
 
-Client (Frontend): A responsive web interface built with HTML, CSS (Tailwind CSS), and JavaScript. It handles user interaction and communicates with the backend via API calls.
+Students can submit solutions.
 
-Server (Backend): A RESTful API responsible for business logic, user authentication, and database operations. The proposed backend framework is Python (Flask, FastAPI, or Django).
+Role-based access control ensures secure operations.
 
-Database: A relational database (like PostgreSQL for production or SQLite for development) to persist data.
+🏗️ 2. System Design
+2.1 Architecture Overview
+Client (Frontend):
+Responsive web interface using HTML, Tailwind CSS, and JavaScript. Handles user interaction and communicates via REST APIs.
 
-2.2. Core Entities and Relationships
-Entity
+Server (Backend):
+RESTful API built with Python using frameworks like Flask, FastAPI, or Django. Manages authentication, authorization, and business logic.
 
-Fields
+Database:
+Relational database (PostgreSQL for production or SQLite for development) for persistent data storage.
 
-Description
-
-User
-
-id (PK)<br>username<br>password_hash<br>role ('teacher', 'student')
-
-Represents a user of the platform.
-
-Assignment
-
-id (PK)<br>title<br>description<br>created_at<br>teacher_id (FK -> User.id)
-
-Represents an assignment created by a teacher.
-
-Submission
-
-id (PK)<br>content<br>submitted_at<brassignment_id (FK -> Assignment.id)<br>student_id (FK -> User.id)
-
-Represents a student's submission for an assignment.
+2.2 Core Entities and Relationships
+Entity	Fields	Description
+User	id, username, password_hash, role ('teacher' or 'student')	Represents a platform user
+Assignment	id, title, description, created_at, teacher_id	Created by teachers
+Submission	id, content, submitted_at, assignment_id, student_id	Submitted by students for an assignment
 
 Relationships:
+A Teacher can create many Assignments.
 
-A Teacher can create many Assignments. (One-to-Many)
+An Assignment can have many Submissions.
 
-An Assignment can have many Submissions. (One-to-Many)
+A Student can submit multiple Submissions.
 
-A Student can make many Submissions. (One-to-Many)
-
-2.3. API Endpoint Definitions
-Teacher Creates an Assignment
+2.3 API Endpoint Definitions
+✅ Teacher Creates an Assignment
 Endpoint: POST /api/assignments
 
 Role: Teacher
 
-Description: Creates a new assignment.
-
 Request Body:
 
+json
+Copy
+Edit
 {
   "title": "Introduction to Python",
   "description": "Write a function that returns 'hello world'."
 }
-
-Student Submits an Assignment
+📝 Student Submits an Assignment
 Endpoint: POST /api/assignments/{assignment_id}/submissions
 
 Role: Student
 
-Description: Submits a solution for a specific assignment.
-
 Request Body:
 
+json
+Copy
+Edit
 {
   "content": "def hello():\n  return 'hello world'"
 }
-
-Teacher Views Submissions for an Assignment
+📂 Teacher Views Submissions
 Endpoint: GET /api/assignments/{assignment_id}/submissions
 
 Role: Teacher
 
-Description: Retrieves all submissions for a specific assignment.
+Description: Fetches all submissions for a specific assignment.
 
-2.4. Authentication Strategy
-The system uses Token-Based Authentication with JSON Web Tokens (JWT). The user's role ('teacher' or 'student') is encoded into the JWT upon login, and this role is used by the backend middleware to authorize access to protected API endpoints.
+2.4 Authentication Strategy
+Token-Based Authentication using JWT (JSON Web Tokens)
 
-3. Prototype Implementation
-A fully functional, self-contained prototype is provided in the index.html file.
+User's role is encoded in the token.
 
-3.1. Technology Stack
+Backend middleware authorizes access based on role.
+
+💻 3. Prototype Implementation
+A self-contained frontend prototype is provided in the index.html file.
+
+3.1 Tech Stack
 HTML5
 
-Tailwind CSS (for styling)
+Tailwind CSS (Styling)
 
-JavaScript (ES6) (for UI logic and API simulation)
+JavaScript (ES6) (UI logic and mock API simulation)
 
-3.2. How to Run the Prototype
-Copy the Code: Copy the entire content of the index.html file.
+3.2 How to Run the Prototype
+Copy the content of index.html.
 
-Create a File: Open a code editor like VS Code and create a new file.
+Create a file using a code editor (e.g., VS Code).
 
-Paste and Save: Paste the code and save the file as index.html.
+Paste the code and save it as index.html.
 
-Open in Browser: Right-click the file and choose "Open with Live Server" (if you have the VS Code extension) or simply open the index.html file directly in your web browser (like Chrome or Firefox).
+Open in Browser:
 
-4. Future Scaling
-The system can be scaled in the future through:
+Right-click → "Open with Live Server" (if installed)
 
-Database Optimization: Migrating to a production-grade database like PostgreSQL and using read replicas.
-
-Microservices Architecture: Breaking down the application into smaller services (e.g., Auth Service, Assignment Service).
-
-Asynchronous Processing: Using a message queue (e.g., RabbitMQ) for handling time-consuming tasks like file uploads for submissions.
-
-Containerization: Using Docker and Kubernetes for automated deployment, scaling, and management.
-
-Content Delivery Network (CDN): Caching static assets to reduce latency for users.
+Or open index.html directly in any browser.
